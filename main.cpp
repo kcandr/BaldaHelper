@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <QApplication>
+#include "generalizedsuffixtree.h"
 
 int readDictionary(QString fileName)
 {
@@ -36,6 +37,9 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     //int res = readDictionary("Dictionary.txt");
+    GeneralizedSuffixTree *tree = new GeneralizedSuffixTree();
+    tree->put("cacao", 0);
+
 
     MainWindow w;
     w.show();

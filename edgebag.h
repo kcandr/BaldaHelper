@@ -11,7 +11,7 @@ class EdgeBag
 {
 public:
     EdgeBag();
-    void put(char c, Edge e);
+    void put(char c, Edge *e);
     Edge *get(char c);
     int search(char c);
     QList<Edge *> getValues();

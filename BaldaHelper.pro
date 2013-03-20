@@ -16,9 +16,11 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     node.cpp \
     edge.cpp \
-    edgebag.cpp
+    edgebag.cpp \
+    generalizedsuffixtree.cpp
 
 HEADERS  += mainwindow.h \
     node.h \
     edge.h \
-    edgebag.h
+    edgebag.h \
+    generalizedsuffixtree.h

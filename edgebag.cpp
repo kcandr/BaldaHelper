@@ -1,15 +1,14 @@
 #include "edgebag.h"
 #include "edge.h"
-#include <QByteArray>
 #include <QHash>
 #include <QList>
 
-EdgeBag::EdgeBag() :
-    children(NULL)
+EdgeBag::EdgeBag()
 {
+    children = new QHash<char, Edge *>();
 }
 // NOTE: check search() needed realy?
-void EdgeBag::put(char c, Edge e)
+void EdgeBag::put(char c, Edge *e)
 {
 //    if (c != (char)(BYTE) c) {
 //        return;
@@ -21,10 +20,10 @@ void EdgeBag::put(char c, Edge e)
 
     if (index < 0) {
         //
-        children->insert(c, &e);
+        children->insert(c, e);
     } else {
         //values[index] = e;
-        children->find(c).value() = &e;
+        children->find(c).value() = e;
         //values->replace(index, &e);
     }
 }
