@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <QApplication>
+#include <QDebug>
 #include "generalizedsuffixtree.h"
 
 int readDictionary(QString fileName)
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
     //int res = readDictionary("Dictionary.txt");
     GeneralizedSuffixTree *tree = new GeneralizedSuffixTree();
     tree->put("cacao", 0);
-
+    qDebug() << tree->search("cac")->at(0);
 
     MainWindow w;
     w.show();

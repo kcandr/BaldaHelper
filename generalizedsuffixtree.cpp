@@ -64,6 +64,35 @@ QList<int> *GeneralizedSuffixTree::search(QString word, int result)
     return tmpNode->getData(result);
 }
 
+Node *GeneralizedSuffixTree::searchNode(QString word)
+{
+    Node *currentNode = root;
+    Edge *currentEdge = NULL;
+
+    for (int i = 0; i < word.length(); ++i) {
+        char ch = word.at(i).toAscii();
+        currentEdge = currentNode->getEdge(ch);
+        if (NULL == currentEdge) {
+            //there is no edge starting with this char
+            return NULL;
+        } else {
+            QString label = currentEdge->getLabel();
+            int lenToMatch = qMin(word.length() - i, label.length());
+            if (!word.mid(i).contains(label.mid(0, lenToMatch))) {
+                return NULL;
+            }
+            if (label.length() >= word.length() - i) {
+                return currentEdge->getDestination();
+            } else {
+                currentNode = currentEdge->getDestination();
+                i += lenToMatch - 1;
+            }
+        }
+    }
+
+    return NULL;
+}
+
 QPair<Node *, QString> GeneralizedSuffixTree::update(Node *inputNode, QString stringPath, QString rest, int value)
 {
     Node *s = inputNode;
@@ -101,7 +130,7 @@ QPair<Node *, QString> GeneralizedSuffixTree::update(Node *inputNode, QString st
         //line 5
         oldRoot = r;
         //line 6
-        if (NULL != s->getSuffixLink()) {
+        if (NULL == s->getSuffixLink()) {
             //assert
             tempString = tempString.mid(1/*, tempString.length()*/);
         } else {
@@ -206,31 +235,3 @@ QString GeneralizedSuffixTree::safeCutLastChar(const QString &seq)
     return seq.left(seq.length() - 1);
 }
 
-Node *GeneralizedSuffixTree::searchNode(QString word)
-{
-    Node *currentNode = root;
-    Edge *currentEdge = NULL;
-
-    for (int i = 0; i < word.length(); ++i) {
-        char ch = word.at(i).toAscii();
-        currentEdge = currentNode->getEdge(ch);
-        if (NULL == currentEdge) {
-            //there is no edge starting with this char
-            return NULL;
-        } else {
-            QString label = currentEdge->getLabel();
-            int lenToMatch = qMin(word.length() - i, label.length());
-            if (!word.mid(i).contains(label.mid(0, lenToMatch))) {
-                return NULL;
-            }
-            if (label.length() >= word.length() - i) {
-                return currentEdge->getDestination();
-            } else {
-                currentNode = currentEdge->getDestination();
-                i += lenToMatch - 1;
-            }
-        }
-    }
-
-    return NULL;
-}
