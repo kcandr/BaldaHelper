@@ -39,8 +39,17 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     //int res = readDictionary("Dictionary.txt");
     GeneralizedSuffixTree *tree = new GeneralizedSuffixTree();
-    tree->put("cacao", 0);
-    qDebug() << tree->search("cac")->at(0);
+
+    QFile dictionary("D.txt");
+    dictionary.open(QIODevice::ReadOnly);
+    int i = 0;
+    while (!dictionary.atEnd()) {
+        QString str = dictionary.readLine();
+        str = str.left(str.size() - 2);
+        tree->put(str, i++);
+    }
+    dictionary.close();
+    //qDebug() << tree->search("cac")->at(0);
 
     MainWindow w;
     w.show();
