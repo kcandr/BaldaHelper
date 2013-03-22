@@ -101,7 +101,8 @@ QPair<Node *, QString> GeneralizedSuffixTree::update(Node *inputNode, QString st
 
     //line 1
     Node *oldRoot = root;
-    QPair<bool, Node *> ret = testAndSplit(s, tempString.left(tempString.length() - 1), newChar, rest, value);
+    QString part = tempString.mid(0, tempString.length() - 1);
+    QPair<bool, Node *> ret = testAndSplit(s, part, newChar, rest, value);
     bool endPoint = ret.first;
     Node *r = ret.second;
     Node *leaf = NULL;
@@ -132,7 +133,8 @@ QPair<Node *, QString> GeneralizedSuffixTree::update(Node *inputNode, QString st
         //line 6
         if (NULL == s->getSuffixLink()) {
             //assert
-            tempString = tempString.mid(1/*, tempString.length()*/);
+            Q_ASSERT(root == s);
+            tempString = tempString.mid(1);
         } else {
             QPair<Node *, QString> canret = canonize(s->getSuffixLink(), safeCutLastChar(tempString));
             s = canret.first;
@@ -167,8 +169,8 @@ QPair<bool, Node *> GeneralizedSuffixTree::testAndSplit(Node *inputs, QString st
         } else {
             //split the edge
             QString newLabel = label.mid(str.length());
-            //label.startsWith(str);
-            //buil da new node and new edge
+            //Q_ASSERT(label.startsWith(str));
+            //build a new node and new edge
             Node *r = new Node();
             Edge *newEdge = new Edge(str, r);
             g->setLabel(newLabel);
