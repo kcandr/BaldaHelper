@@ -11,16 +11,20 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BaldaHelper
 TEMPLATE = app
 
+HEADERS += \
+    src/node.h \
+    src/mainwindow.h \
+    src/generalizedsuffixtree.h \
+    src/edgebag.h \
+    src/edge.h \
+    src/celldelegate.h
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    node.cpp \
-    edge.cpp \
-    edgebag.cpp \
-    generalizedsuffixtree.cpp
+SOURCES += \
+    src/node.cpp \
+    src/mainwindow.cpp \
+    src/main.cpp \
+    src/generalizedsuffixtree.cpp \
+    src/edgebag.cpp \
+    src/edge.cpp
 
-HEADERS  += mainwindow.h \
-    node.h \
-    edge.h \
-    edgebag.h \
-    generalizedsuffixtree.h
+
