@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QGridLayout>
 #include <QLineEdit>
+#include <QPair>
 #include <QDebug>
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -22,6 +23,14 @@ MainWindow::MainWindow(QWidget *parent)
     }
     createWindow();
     setWindowTitle(tr("Balda Helper"));
+}
+
+void MainWindow::searchAllWords()
+{
+    for (int row = 0; row < dimension; ++row)
+        for (int col = 0; col < dimension; ++col) {
+            searchAllWordsFromCell(row, col);
+        }
 }
 
 MainWindow::~MainWindow()
@@ -85,7 +94,6 @@ void MainWindow::createWindow()
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
             item->setTextAlignment(Qt::AlignCenter);
-            //item->setBackgroundColor(QColor(147, 185, 250));
             cells->setItem(row, col, item);
         }
         cells->setRowHeight(row, 40);
@@ -97,15 +105,57 @@ void MainWindow::createWindow()
     QFrame *rightFrame = new QFrame();
     QVBoxLayout *rvl = new QVBoxLayout();
     goButton = new QPushButton(tr("GO"));
+    text = new QTextEdit();
     rvl->addWidget(goButton);
+    rvl->addWidget(text);
     rightFrame->setLayout(rvl);
-    //vl->addWidget(); add text widget
 
     QHBoxLayout *hl = new QHBoxLayout();
     hl->addWidget(leftFrame);
     hl->addWidget(rightFrame);
 
     mainFrame->setLayout(hl);
+    connect(goButton, SIGNAL(clicked()), SLOT(init()));
     setCentralWidget(mainFrame);
+}
+
+void MainWindow::searchAllWordsFromCell(int r, int c)
+{
+    QPair<int, int> tmp(r, c);
+    visited.append(tmp);
+}
+
+void MainWindow::init()
+{
+    for (int row = 0; row < dimension; ++row)
+        for (int col = 0; col < dimension; ++col) {
+            characters[row][col].type = lock;
+            char tmp = *cells->item(row, col)->text().toAscii().data();
+            characters[row][col].character = tmp;
+            if (tmp) {
+                characters[row][col].type = chr;
+            }
+        }
+    for (int row = 0; row < dimension; ++row)
+        for (int col = 0; col < dimension; ++col) {
+            if (characters[row][col].character) {
+                if ( (col < dimension - 1) && (characters[row][col + 1].type == lock) ) {
+                    characters[row][col + 1].type = neighbour;
+                    cells->item(row, col + 1)->setBackgroundColor(QColor("#CBE979"));
+                }
+                if ( (col > 0) && (characters[row][col - 1].type == lock) ) {
+                    characters[row][col - 1].type = neighbour;
+                    cells->item(row, col - 1)->setBackgroundColor(QColor("#CBE979"));
+                }
+                if ( (row < dimension - 1) && (characters[row + 1][col].type == lock) ) {
+                    characters[row + 1][col].type = neighbour;
+                    cells->item(row + 1, col)->setBackgroundColor(QColor("#CBE979"));
+                }
+                if ( (row > 0) && (characters[row - 1][col].type == lock) ) {
+                    characters[row - 1][col].type = neighbour;
+                    cells->item(row - 1, col)->setBackgroundColor(QColor("#CBE979"));
+                }
+            }
+        }
 }
 

@@ -8,7 +8,19 @@ class QStringList;
 class QTableWidget;
 class QTableWidgetItem;
 class QPushButton;
+class QTextEdit;
 class GeneralizedSuffixTree;
+
+enum {
+    chr,
+    neighbour,
+    lock
+};
+
+struct cellStructure {
+    int type;
+    char character;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -16,21 +28,27 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
+    void searchAllWords();
     ~MainWindow();
 
 private:
     int dimension;
     QStringList wordsList;
-    GeneralizedSuffixTree *tree;
-    QTableWidget *cells;
-    QPushButton *goButton;
+    GeneralizedSuffixTree* tree;
+    QTableWidget* cells;
+    QPushButton* goButton;
+    QTextEdit* text;
+    cellStructure characters[5][5];
+    QList<QPair<int, int> > visited;
 
     int readDictionary(QString fileName);
     void createTree();
     void createWindow();
+    void searchAllWordsFromCell(int r, int c);
 
 private slots:
-    void setCellsBackground(int row, int col);
+    void init();
+
 };
 
 #endif // MAINWINDOW_H
