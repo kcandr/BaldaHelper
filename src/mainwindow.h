@@ -40,11 +40,13 @@ private:
     QTextEdit* text;
     cellStructure characters[5][5];
     QList<QPair<int, int> > visited;
+    QList<QPair<int, int> > neighbours;
 
     int readDictionary(QString fileName);
     void createTree();
     void createWindow();
     void searchAllWordsFromCell(int r, int c);
+    int getNeighbours(int r, int c);
 
 private slots:
     void init();

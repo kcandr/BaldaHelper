@@ -123,6 +123,46 @@ void MainWindow::searchAllWordsFromCell(int r, int c)
 {
     QPair<int, int> tmp(r, c);
     visited.append(tmp);
+    int co = getNeighbours(r, c);
+    text->append(QString::number(co));
+}
+
+int MainWindow::getNeighbours(int r, int c)
+{
+    int count = 0;
+    if ( (c < dimension - 1) &&
+         ((characters[r][c + 1].type == neighbour) ||
+          (characters[r][c + 1].type == chr)
+          )
+        ) {
+        neighbours.append(QPair<int, int>(r, c + 1));
+        ++count;
+    }
+    if ( (c > 0) &&
+         ((characters[r][c - 1].type == neighbour) ||
+          (characters[r][c - 1].type == chr)
+          )
+        ){
+        neighbours.append(QPair<int, int>(r, c - 1));
+        ++count;
+    }
+    if ( (r < dimension - 1) &&
+         ((characters[r + 1][c].type == neighbour) ||
+          (characters[r + 1][c].type == chr)
+          )
+        ){
+        neighbours.append(QPair<int, int>(r + 1, c));
+        ++count;
+    }
+    if ( (r > 0) &&
+         ((characters[r - 1][c].type == neighbour) ||
+          (characters[r - 1][c].type == chr)
+          )
+        ) {
+        neighbours.append(QPair<int, int>(r - 1, c));
+        ++count;
+    }
+    return count;
 }
 
 void MainWindow::init()
@@ -157,5 +197,6 @@ void MainWindow::init()
                 }
             }
         }
+    searchAllWordsFromCell(2, 4);
 }
 
