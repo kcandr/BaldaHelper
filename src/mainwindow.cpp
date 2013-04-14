@@ -121,7 +121,7 @@ void MainWindow::createWindow()
 
 void MainWindow::searchAllWordsFromCell(int r, int c)
 {
-    QPair<int, int> tmp(r, c);
+    QPoint tmp(r, c);
     visited.append(tmp);
     int co = getNeighbours(r, c);
     text->append(QString::number(co));
@@ -130,39 +130,118 @@ void MainWindow::searchAllWordsFromCell(int r, int c)
 int MainWindow::getNeighbours(int r, int c)
 {
     int count = 0;
-    if ( (c < dimension - 1) &&
-         ((characters[r][c + 1].type == neighbour) ||
-          (characters[r][c + 1].type == chr)
-          )
-        ) {
-        neighbours.append(QPair<int, int>(r, c + 1));
+    if ( (c < dimension - 1) && (characters[r][c + 1].type == chr)) {
+        neighbours.append(QPoint(r, c + 1));
         ++count;
     }
-    if ( (c > 0) &&
-         ((characters[r][c - 1].type == neighbour) ||
-          (characters[r][c - 1].type == chr)
-          )
-        ){
-        neighbours.append(QPair<int, int>(r, c - 1));
+    if ( (c > 0) && (characters[r][c - 1].type == chr)) {
+        neighbours.append(QPoint(r, c - 1));
         ++count;
     }
-    if ( (r < dimension - 1) &&
-         ((characters[r + 1][c].type == neighbour) ||
-          (characters[r + 1][c].type == chr)
-          )
-        ){
-        neighbours.append(QPair<int, int>(r + 1, c));
+    if ( (r < dimension - 1) && (characters[r + 1][c].type == chr)) {
+        neighbours.append(QPoint(r + 1, c));
         ++count;
     }
-    if ( (r > 0) &&
-         ((characters[r - 1][c].type == neighbour) ||
-          (characters[r - 1][c].type == chr)
-          )
-        ) {
-        neighbours.append(QPair<int, int>(r - 1, c));
+    if ( (r > 0) && (characters[r - 1][c].type == chr)) {
+        neighbours.append(QPoint(r - 1, c));
         ++count;
     }
     return count;
+}
+
+void MainWindow::findWords()
+{
+    foreach (QPoint nChar, newChar) {
+        foreach (QPoint eChar, existingChar) {
+            updateMask();
+            fieldMask[nChar.x()][nChar.y()].type = chr;
+            QString tmp;
+            tmp = findWord(nChar, eChar);
+            qDebug() << "From " << nChar << ": " << tmp;
+        }
+    }
+}
+
+QString MainWindow::findWord(QPoint begin, QPoint end)
+{
+    fieldMask[end.x()][end.y()].type = water;
+    for (int counter = 0; counter < 50; ++counter) {
+        for (int r = 0; r < dimension; ++r)
+            for (int c = 0; c < dimension; ++c) {
+                if (fieldMask[r][c].type == water) {
+                    goWater(r, c);
+                }
+            }
+        if (fieldMask[begin.x()][begin.y()].type == water) {
+            return getWord(begin, end);
+        }
+    }
+    return "";
+}
+
+bool MainWindow::inField(int r, int c)
+{
+    if (r >= 0 && r < dimension &&
+        c >= 0 && c < dimension) {
+        return true;
+    }
+    return false;
+}
+
+void MainWindow::goWater(int r, int c)
+{
+    // up
+    if (inField(r - 1, c) && fieldMask[r - 1][c].type == chr) {
+        fieldMask[r - 1][c].type = water;
+        fieldDirs[r - 1][c].setX(r);
+        fieldDirs[r - 1][c].setY(c);
+    }
+    // left
+    if (inField(r , c - 1) && fieldMask[r][c - 1].type == chr) {
+        fieldMask[r][c - 1].type = water;
+        fieldDirs[r][c - 1].setX(r);
+        fieldDirs[r][c - 1].setY(c);
+    }
+    // down
+    if (inField(r + 1, c) && fieldMask[r + 1][c].type == chr) {
+        fieldMask[r + 1][c].type = water;
+        fieldDirs[r + 1][c].setX(r);
+        fieldDirs[r + 1][c].setY(c);
+    }
+    // right
+    if (inField(r , c + 1) && fieldMask[r][c + 1].type == chr) {
+        fieldMask[r][c + 1].type = water;
+        fieldDirs[r][c + 1].setX(r);
+        fieldDirs[r][c + 1].setY(c);
+    }
+}
+
+void MainWindow::updateMask()
+{
+    for (int r = 0; r < dimension; ++r)
+        for (int c = 0; c < dimension; ++c) {
+            fieldMask[r][c] = characters[r][c];
+            fieldDirs[r][c] = QPoint();
+        }
+}
+
+QString MainWindow::getWord(QPoint begin, QPoint end)
+{
+    QPoint p1 = begin;
+    QPoint p2;
+    QString word(fieldMask[p1.x()][p1.y()].character);
+
+    while (true) {
+        p2 = fieldDirs[p1.x()][p1.y()];
+
+        word.append(fieldMask[p2.x()][p2.y()].character);
+        p1 = p2;
+
+        if (p1 == end) {
+            break;
+        }
+    }
+    return word;
 }
 
 void MainWindow::init()
@@ -174,29 +253,39 @@ void MainWindow::init()
             characters[row][col].character = tmp;
             if (tmp) {
                 characters[row][col].type = chr;
+                existingChar.append(QPoint(row, col));
             }
         }
+    QString tmp("_");
     for (int row = 0; row < dimension; ++row)
         for (int col = 0; col < dimension; ++col) {
-            if (characters[row][col].character) {
+            if (characters[row][col].type == chr) {
                 if ( (col < dimension - 1) && (characters[row][col + 1].type == lock) ) {
                     characters[row][col + 1].type = neighbour;
+                    characters[row][col + 1].character = *tmp.toAscii().data();
+                    newChar.append(QPoint(row, col + 1));
                     cells->item(row, col + 1)->setBackgroundColor(QColor("#CBE979"));
                 }
                 if ( (col > 0) && (characters[row][col - 1].type == lock) ) {
                     characters[row][col - 1].type = neighbour;
+                    characters[row][col - 1].character = *tmp.toAscii().data();
+                    newChar.append(QPoint(row, col - 1));
                     cells->item(row, col - 1)->setBackgroundColor(QColor("#CBE979"));
                 }
                 if ( (row < dimension - 1) && (characters[row + 1][col].type == lock) ) {
                     characters[row + 1][col].type = neighbour;
+                    characters[row + 1][col].character = *tmp.toAscii().data();
+                    newChar.append(QPoint(row + 1, col));
                     cells->item(row + 1, col)->setBackgroundColor(QColor("#CBE979"));
                 }
                 if ( (row > 0) && (characters[row - 1][col].type == lock) ) {
                     characters[row - 1][col].type = neighbour;
+                    characters[row - 1][col].character = *tmp.toAscii().data();
+                    newChar.append(QPoint(row - 1, col));
                     cells->item(row - 1, col)->setBackgroundColor(QColor("#CBE979"));
                 }
             }
         }
-    searchAllWordsFromCell(2, 4);
+    findWords();
 }
 

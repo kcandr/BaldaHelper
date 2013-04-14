@@ -23,7 +23,7 @@ private:
     Node *activeLeaf;
 
     QPair<Node *, QString> update(Node *inputNode, QString stringPath, QString rest, int value);
-    QPair <bool, Node *> testAndSplit(Node *inputs, QString stringPart, char t, QString remainder, int value);
+    QPair<bool, Node *> testAndSplit(Node *inputs, QString stringPart, char t, QString remainder, int value);
     QPair<Node *, QString> canonize(Node *s, const QString inputString);
     QString safeCutLastChar(const QString &seq);
     Node *searchNode(QString word);
