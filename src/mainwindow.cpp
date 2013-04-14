@@ -2,17 +2,6 @@
 #include "generalizedsuffixtree.h"
 #include "celldelegate.h"
 #include <QtGui>
-#include <QFile>
-#include <QStringList>
-#include <QMessageBox>
-#include <QTime>
-#include <QPushButton>
-#include <QGridLayout>
-#include <QLineEdit>
-#include <QPair>
-#include <QDebug>
-#include <QTableWidget>
-#include <QTableWidgetItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), dimension(5)
@@ -23,14 +12,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
     createWindow();
     setWindowTitle(tr("Balda Helper"));
-}
-
-void MainWindow::searchAllWords()
-{
-    for (int row = 0; row < dimension; ++row)
-        for (int col = 0; col < dimension; ++col) {
-            searchAllWordsFromCell(row, col);
-        }
 }
 
 MainWindow::~MainWindow()
@@ -105,9 +86,9 @@ void MainWindow::createWindow()
     QFrame *rightFrame = new QFrame();
     QVBoxLayout *rvl = new QVBoxLayout();
     goButton = new QPushButton(tr("GO"));
-    text = new QTextEdit();
+    words = new QListWidget();
     rvl->addWidget(goButton);
-    rvl->addWidget(text);
+    rvl->addWidget(words);
     rightFrame->setLayout(rvl);
 
     QHBoxLayout *hl = new QHBoxLayout();
@@ -115,38 +96,9 @@ void MainWindow::createWindow()
     hl->addWidget(rightFrame);
 
     mainFrame->setLayout(hl);
-    connect(goButton, SIGNAL(clicked()), SLOT(init()));
+    connect(goButton, SIGNAL(clicked()), SLOT(startFinder()));
+    connect(words, SIGNAL(currentTextChanged(QString)), SLOT(highlightWord(QString)));
     setCentralWidget(mainFrame);
-}
-
-void MainWindow::searchAllWordsFromCell(int r, int c)
-{
-    QPoint tmp(r, c);
-    visited.append(tmp);
-    int co = getNeighbours(r, c);
-    text->append(QString::number(co));
-}
-
-int MainWindow::getNeighbours(int r, int c)
-{
-    int count = 0;
-    if ( (c < dimension - 1) && (characters[r][c + 1].type == chr)) {
-        neighbours.append(QPoint(r, c + 1));
-        ++count;
-    }
-    if ( (c > 0) && (characters[r][c - 1].type == chr)) {
-        neighbours.append(QPoint(r, c - 1));
-        ++count;
-    }
-    if ( (r < dimension - 1) && (characters[r + 1][c].type == chr)) {
-        neighbours.append(QPoint(r + 1, c));
-        ++count;
-    }
-    if ( (r > 0) && (characters[r - 1][c].type == chr)) {
-        neighbours.append(QPoint(r - 1, c));
-        ++count;
-    }
-    return count;
 }
 
 void MainWindow::findWords()
@@ -155,14 +107,12 @@ void MainWindow::findWords()
         foreach (QPoint eChar, existingChar) {
             updateMask();
             fieldMask[nChar.x()][nChar.y()].type = chr;
-            QString tmp;
-            tmp = findWord(nChar, eChar);
-            qDebug() << "From " << nChar << ": " << tmp;
+            findWord(nChar, eChar);
         }
     }
 }
 
-QString MainWindow::findWord(QPoint begin, QPoint end)
+void MainWindow::findWord(QPoint begin, QPoint end)
 {
     fieldMask[end.x()][end.y()].type = water;
     for (int counter = 0; counter < 50; ++counter) {
@@ -173,10 +123,70 @@ QString MainWindow::findWord(QPoint begin, QPoint end)
                 }
             }
         if (fieldMask[begin.x()][begin.y()].type == water) {
-            return getWord(begin, end);
+            getWord(begin, end);
+            return;
         }
     }
-    return "";
+}
+
+void MainWindow::getWord(QPoint begin, QPoint end)
+{
+    QPoint p1 = begin;
+    QPoint p2;
+    QString word(fieldMask[p1.x()][p1.y()].character);
+    QList<QPoint> pointWay;
+    pointWay.append(p1);
+
+    while (true) {
+        p2 = fieldDirs[p1.x()][p1.y()];
+
+        word.append(fieldMask[p2.x()][p2.y()].character);
+        pointWay.append(p2);
+        p1 = p2;
+
+        if (p1 == end) {
+            break;
+        }
+    }
+    wordsWayList.insert(word, pointWay);
+}
+
+void MainWindow::displayWords()
+{
+    QMultiHash<QString, QList<QPoint> >::iterator it = wordsWayList.begin();
+    while (it != wordsWayList.end()) {
+        words->addItem(it.key());
+        ++it;
+    }
+}
+
+void MainWindow::highlightWord(QString text)
+{
+    clearHighlightedWords();
+    QMultiHash<QString, QList<QPoint> >::iterator it = wordsWayList.find(text);
+    QList<QList<QPoint> > values = wordsWayList.values(it.key());
+
+    foreach (QList<QPoint> lop, values) {
+        foreach (QPoint p, lop) {
+            cells->item(p.x(), p.y())->setBackgroundColor(QColor("#E165B9"));
+        }
+    }
+}
+
+void MainWindow::clearHighlightedWords()
+{
+    cells->clearSelection();
+    for (int row = 0; row < dimension; ++row)
+        for (int col = 0; col < dimension; ++col) {
+            cells->item(row, col)->setBackgroundColor(QColor(1, 0, 0, 0));
+        }
+}
+
+void MainWindow::startFinder()
+{
+    init();
+    findWords();
+    displayWords();
 }
 
 bool MainWindow::inField(int r, int c)
@@ -225,25 +235,6 @@ void MainWindow::updateMask()
         }
 }
 
-QString MainWindow::getWord(QPoint begin, QPoint end)
-{
-    QPoint p1 = begin;
-    QPoint p2;
-    QString word(fieldMask[p1.x()][p1.y()].character);
-
-    while (true) {
-        p2 = fieldDirs[p1.x()][p1.y()];
-
-        word.append(fieldMask[p2.x()][p2.y()].character);
-        p1 = p2;
-
-        if (p1 == end) {
-            break;
-        }
-    }
-    return word;
-}
-
 void MainWindow::init()
 {
     for (int row = 0; row < dimension; ++row)
@@ -256,6 +247,7 @@ void MainWindow::init()
                 existingChar.append(QPoint(row, col));
             }
         }
+
     QString tmp("_");
     for (int row = 0; row < dimension; ++row)
         for (int col = 0; col < dimension; ++col) {
@@ -286,6 +278,6 @@ void MainWindow::init()
                 }
             }
         }
-    findWords();
 }
+
 

@@ -2,14 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPoint>
-#include <QList>
+#include <QMultiHash>
 
+class QListWidget;
 class QStringList;
 class QTableWidget;
 class QTableWidgetItem;
 class QPushButton;
-class QTextEdit;
 class GeneralizedSuffixTree;
 
 enum {
@@ -30,7 +29,6 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
-    void searchAllWords();
     ~MainWindow();
 
 private:
@@ -39,30 +37,31 @@ private:
     GeneralizedSuffixTree* tree;
     QTableWidget* cells;
     QPushButton* goButton;
-    QTextEdit* text;
-    cellStructure characters[5][5];
-    QList<QPoint> visited;
-    QList<QPoint> neighbours;
+    QListWidget* words;
     QList<QPoint> newChar;
     QList<QPoint> existingChar;
+    cellStructure characters[5][5];
+    cellStructure fieldMask[5][5];
+    QPoint fieldDirs[5][5];
 
     int readDictionary(QString fileName);
     void createTree();
     void createWindow();
-    void searchAllWordsFromCell(int r, int c);
-    int getNeighbours(int r, int c);
     void findWords();
-    QString findWord(QPoint begin, QPoint end);
+    void findWord(QPoint begin, QPoint end);
 
     bool inField(int r, int c);
     void goWater(int r, int c);
     void updateMask();
-    QString getWord(QPoint begin, QPoint end);
-    cellStructure fieldMask[5][5];
-    QPoint fieldDirs[5][5];
+    void getWord(QPoint begin, QPoint end);
+    void displayWords();
+    void clearHighlightedWords();
+    QMultiHash<QString, QList<QPoint> > wordsWayList;
 
 private slots:
+    void startFinder();
     void init();
+    void highlightWord(QString text);
 
 };
 
