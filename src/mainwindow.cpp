@@ -7,8 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), dimension(5)
 {
     tree = new GeneralizedSuffixTree();
-    if (!readDictionary("Dictionary.txt")) {
-        //createTree();
+    if (!readDictionary("Dictionary_big.txt")) {
+        createTree();
     }
     createWindow();
     setWindowTitle(tr("Balda Helper"));
@@ -48,7 +48,6 @@ void MainWindow::createTree()
         tree->put(wordsList.at(i), i);
     }
     qDebug("Time to creating tree: %d ms", t.elapsed());
-    qDebug() << tree->search("карта")->at(0);
 }
 
 void MainWindow::createWindow()
@@ -154,8 +153,15 @@ void MainWindow::getWord(QPoint begin, QPoint end)
 void MainWindow::displayWords()
 {
     QMultiHash<QString, QList<QPoint> >::iterator it = wordsWayList.begin();
+    words->addItem(it.key());
+    QMultiHash<QString, QList<QPoint> >::iterator prev = it;
+    ++it;
+
     while (it != wordsWayList.end()) {
-        words->addItem(it.key());
+        if (prev.key() != it.key()) {
+            words->addItem(it.key());
+            prev = it;
+        }
         ++it;
     }
 }
@@ -187,6 +193,9 @@ void MainWindow::startFinder()
     init();
     findWords();
     displayWords();
+
+    qDebug() << tree->search("карта")->at(0);
+    qDebug() << tree->search("парта")->at(0);
 }
 
 bool MainWindow::inField(int r, int c)
@@ -237,6 +246,7 @@ void MainWindow::updateMask()
 
 void MainWindow::init()
 {
+    words->clear();
     for (int row = 0; row < dimension; ++row)
         for (int col = 0; col < dimension; ++col) {
             characters[row][col].type = lock;
