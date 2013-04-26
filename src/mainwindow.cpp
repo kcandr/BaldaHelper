@@ -86,9 +86,9 @@ void MainWindow::createWindow()
     QFrame *rightFrame = new QFrame();
     QVBoxLayout *rvl = new QVBoxLayout();
     goButton = new QPushButton(tr("GO"));
-    words = new QListWidget();
+    wordsDisplay = new QListWidget();
     rvl->addWidget(goButton);
-    rvl->addWidget(words);
+    rvl->addWidget(wordsDisplay);
     rightFrame->setLayout(rvl);
 
     QHBoxLayout *hl = new QHBoxLayout();
@@ -97,8 +97,7 @@ void MainWindow::createWindow()
 
     mainFrame->setLayout(hl);
     connect(goButton, SIGNAL(clicked()), SLOT(startFinder()));
-    connect(words, SIGNAL(currentTextChanged(QString)), SLOT(highlightWord(QString)));
-    connect(words, SIGNAL(currentTextChanged(QString)), SLOT(showWord(QString)));
+    connect(wordsDisplay, SIGNAL(currentTextChanged(QString)), SLOT(highlightWord(QString)));
     setCentralWidget(mainFrame);
 }
 
@@ -130,22 +129,28 @@ void MainWindow::findWord(QPoint begin, QPoint end)
     }
 }
 
-void MainWindow::showWord(QString word)
+void MainWindow::swapMaskToWord()
 {
-    int size = word.size();
-    QString q = word.mid(1);
-    QList<int> *w = tree->search(q);
+    QMultiHash<QString, QList<QPoint> >::iterator it = masksWayList.begin();
 
-    QMessageBox msgBox;
-    QString s;
+    while (it != masksWayList.end()) {
+        swap(it.key(), it.value());
+        ++it;
+    }
+    masksWayList.clear();
+}
+
+void MainWindow::swap(QString mask, QList<QPoint> way)
+{
+    int size = mask.size();
+    QString q = mask.mid(1);
+    QList<int> *w = tree->search(q);
     foreach (int i, *w) {
-        QString tmp = wordsList.at(i);
-        if (size == tmp.size() && tmp.mid(1) == q) {
-            s.append(wordsList.at(i) + "\n");
+        QString word = wordsList.at(i);
+        if (size == word.size() && word.mid(1) == q) {
+            wordsWayList.insert(word, way);
         }
     }
-    msgBox.setText(s);
-    msgBox.exec();
 }
 
 void MainWindow::getWord(QPoint begin, QPoint end)
@@ -167,19 +172,19 @@ void MainWindow::getWord(QPoint begin, QPoint end)
             break;
         }
     }
-    wordsWayList.insert(word, pointWay);
+    masksWayList.insert(word, pointWay);
 }
 
 void MainWindow::displayWords()
 {
     QMultiHash<QString, QList<QPoint> >::iterator it = wordsWayList.begin();
-    words->addItem(it.key());
+    wordsDisplay->addItem(it.key());
     QMultiHash<QString, QList<QPoint> >::iterator prev = it;
     ++it;
 
     while (it != wordsWayList.end()) {
         if (prev.key() != it.key()) {
-            words->addItem(it.key());
+            wordsDisplay->addItem(it.key());
             prev = it;
         }
         ++it;
@@ -210,12 +215,11 @@ void MainWindow::clearHighlightedWords()
 
 void MainWindow::startFinder()
 {
+    clearHighlightedWords();
     init();
     findWords();
+    swapMaskToWord();
     displayWords();
-
-    //qDebug() << tree->search("ïàðòà")->at(0);
-    qDebug() << tree->search("ÏÀÐÒÀ")->at(0);
 }
 
 bool MainWindow::inField(int r, int c)
@@ -266,7 +270,7 @@ void MainWindow::updateMask()
 
 void MainWindow::init()
 {
-    words->clear();
+    wordsDisplay->clear();
     for (int row = 0; row < dimension; ++row)
         for (int col = 0; col < dimension; ++col) {
             characters[row][col].type = lock;

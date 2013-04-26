@@ -37,7 +37,7 @@ private:
     GeneralizedSuffixTree* tree;
     QTableWidget* cells;
     QPushButton* goButton;
-    QListWidget* words;
+    QListWidget* wordsDisplay;
     QList<QPoint> newChar;
     QList<QPoint> existingChar;
     cellStructure characters[5][5];
@@ -56,13 +56,15 @@ private:
     void getWord(QPoint begin, QPoint end);
     void displayWords();
     void clearHighlightedWords();
+    QMultiHash<QString, QList<QPoint> > masksWayList;
     QMultiHash<QString, QList<QPoint> > wordsWayList;
 
 private slots:
     void startFinder();
     void init();
     void highlightWord(QString text);
-    void showWord(QString word);
+    void swapMaskToWord();
+    void swap(QString mask, QList<QPoint> way);
 
 };
 
