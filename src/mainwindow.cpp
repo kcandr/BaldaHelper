@@ -2,6 +2,7 @@
 #include "generalizedsuffixtree.h"
 #include "celldelegate.h"
 #include <QtGui>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), dimension(5)
@@ -31,7 +32,7 @@ int MainWindow::readDictionary(QString fileName)
 
     while (!dictionary.atEnd()) {
         QString word = dictionary.readLine();
-        wordsList.append(word.left(word.size() - 2));
+        wordsList.append(word.left(word.size() - 1).toUpper());
     }
     qDebug("Time to reading dictionary: %d ms", t.elapsed());
 
@@ -97,6 +98,7 @@ void MainWindow::createWindow()
     mainFrame->setLayout(hl);
     connect(goButton, SIGNAL(clicked()), SLOT(startFinder()));
     connect(words, SIGNAL(currentTextChanged(QString)), SLOT(highlightWord(QString)));
+    connect(words, SIGNAL(currentTextChanged(QString)), SLOT(showWord(QString)));
     setCentralWidget(mainFrame);
 }
 
@@ -126,6 +128,24 @@ void MainWindow::findWord(QPoint begin, QPoint end)
             return;
         }
     }
+}
+
+void MainWindow::showWord(QString word)
+{
+    int size = word.size();
+    QString q = word.mid(1);
+    QList<int> *w = tree->search(q);
+
+    QMessageBox msgBox;
+    QString s;
+    foreach (int i, *w) {
+        QString tmp = wordsList.at(i);
+        if (size == tmp.size() && tmp.mid(1) == q) {
+            s.append(wordsList.at(i) + "\n");
+        }
+    }
+    msgBox.setText(s);
+    msgBox.exec();
 }
 
 void MainWindow::getWord(QPoint begin, QPoint end)
@@ -194,8 +214,8 @@ void MainWindow::startFinder()
     findWords();
     displayWords();
 
-    qDebug() << tree->search("карта")->at(0);
-    qDebug() << tree->search("парта")->at(0);
+    //qDebug() << tree->search("парта")->at(0);
+    qDebug() << tree->search("ПАРТА")->at(0);
 }
 
 bool MainWindow::inField(int r, int c)

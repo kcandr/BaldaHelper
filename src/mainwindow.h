@@ -62,6 +62,7 @@ private slots:
     void startFinder();
     void init();
     void highlightWord(QString text);
+    void showWord(QString word);
 
 };
 
