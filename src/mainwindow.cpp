@@ -2,7 +2,6 @@
 #include "generalizedsuffixtree.h"
 #include "celldelegate.h"
 #include <QtGui>
-#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), dimension(5)
@@ -145,10 +144,12 @@ void MainWindow::swap(QString mask, QList<QPoint> way)
     int size = mask.size();
     QString q = mask.mid(1);
     QList<int> *w = tree->search(q);
-    foreach (int i, *w) {
-        QString word = wordsList.at(i);
-        if (size == word.size() && word.mid(1) == q) {
-            wordsWayList.insert(word, way);
+    if (NULL != w) {
+        foreach (int i, *w) {
+            QString word = wordsList.at(i);
+            if (size == word.size() && word.mid(1) == q) {
+                wordsWayList.insert(word, way);
+            }
         }
     }
 }
@@ -189,6 +190,8 @@ void MainWindow::displayWords()
         }
         ++it;
     }
+    wordsDisplay->setSortingEnabled(true);
+    wordsDisplay->sortItems();
 }
 
 void MainWindow::highlightWord(QString text)
@@ -215,11 +218,16 @@ void MainWindow::clearHighlightedWords()
 
 void MainWindow::startFinder()
 {
+    QTime t;
+    t.start();
+
     clearHighlightedWords();
     init();
     findWords();
     swapMaskToWord();
     displayWords();
+
+    qDebug("Time to finding words: %d ms", t.elapsed());
 }
 
 bool MainWindow::inField(int r, int c)

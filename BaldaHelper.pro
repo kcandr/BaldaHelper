@@ -26,5 +26,3 @@ SOURCES += \
     src/generalizedsuffixtree.cpp \
     src/edgebag.cpp \
     src/edge.cpp
-
-
